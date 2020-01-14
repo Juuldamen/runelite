@@ -102,8 +102,6 @@ class PluginListItem extends JPanel
 			keywords.add(mf.getInternalName());
 		}
 
-		final List<JMenuItem> popupMenuItems = new ArrayList<>();
-
 		setLayout(new BorderLayout(3, 0));
 		setPreferredSize(new Dimension(PluginPanel.PANEL_WIDTH, 20));
 
@@ -195,6 +193,11 @@ class PluginListItem extends JPanel
 	void setPinned(boolean pinned)
 	{
 		pinButton.setSelected(pinned);
+	}
+
+	boolean getPluginEnabled()
+	{
+		return onOffToggle.isSelected();
 	}
 
 	void setPluginEnabled(boolean enabled)

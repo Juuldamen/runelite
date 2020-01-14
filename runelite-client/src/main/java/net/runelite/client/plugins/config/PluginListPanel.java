@@ -24,9 +24,11 @@
  */
 package net.runelite.client.plugins.config;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,11 +39,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -66,6 +64,7 @@ import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.MultiplexingPluginPanel;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 
 @Slf4j
@@ -91,6 +90,13 @@ class PluginListPanel extends PluginPanel
 	private final JScrollPane scrollPane;
 	private final FixedWidthPanel mainPanel;
 	private List<PluginListItem> pluginList;
+
+	private JMenuItem alphabeticalMenuItem;
+	private JMenuItem categoryMenuItem;
+	private JMenuItem statusMenuItem;
+
+	private static BufferedImage CONFIG_SORT_ICON = ImageUtil.getResourceStreamFromClass(ConfigPanel.class, "config_sort_icon.png");
+	private PluginSortingMode sortingMode;
 
 	@Inject
 	public PluginListPanel(
@@ -154,10 +160,61 @@ class PluginListPanel extends PluginPanel
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
+		sortingMode = PluginSortingMode.ALPHABETICAL;
+
+		JButton sortButton = new JButton(new ImageIcon(CONFIG_SORT_ICON));
+		sortButton.setPreferredSize(new Dimension(28, 21));
+		sortButton.setMargin(new Insets(0, 0, 0, 0));
+		sortButton.setBorder(new EmptyBorder(0, 0, 0, 0));
+		sortButton.setToolTipText("Sorting mode");
+
+		alphabeticalMenuItem = new JMenuItem(new AbstractAction(PluginSortingMode.ALPHABETICAL.toString()) {
+			public void actionPerformed(ActionEvent e) {
+				if (sortingMode != PluginSortingMode.ALPHABETICAL)
+				{
+					sortingMode = PluginSortingMode.ALPHABETICAL;
+					rebuildPluginList();
+				}
+			}
+		});
+
+		categoryMenuItem = new JMenuItem(new AbstractAction(PluginSortingMode.CATEGORY.toString()) {
+			public void actionPerformed(ActionEvent e) {
+				if (sortingMode != PluginSortingMode.CATEGORY)
+				{
+					sortingMode = PluginSortingMode.CATEGORY;
+					rebuildPluginList();
+				}
+			}
+		});
+
+		statusMenuItem = new JMenuItem(new AbstractAction(PluginSortingMode.STATUS.toString()) {
+			public void actionPerformed(ActionEvent e) {
+				if (sortingMode != PluginSortingMode.STATUS)
+				{
+					sortingMode = PluginSortingMode.STATUS;
+					rebuildPluginList();
+				}
+			}
+		});
+
+		final JPopupMenu popup = new JPopupMenu();
+		popup.add(alphabeticalMenuItem);
+		popup.add(categoryMenuItem);
+		popup.add(statusMenuItem);
+
+		sortButton.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+
 		JPanel topPanel = new JPanel();
 		topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		topPanel.setLayout(new BorderLayout(0, BORDER_OFFSET));
 		topPanel.add(searchBar, BorderLayout.CENTER);
+		topPanel.add(sortButton, BorderLayout.EAST);
+
 		add(topPanel, BorderLayout.NORTH);
 
 		mainPanel = new FixedWidthPanel();
@@ -182,37 +239,77 @@ class PluginListPanel extends PluginPanel
 
 	void rebuildPluginList()
 	{
+		log.debug("Plugin sorting mode set to: {}", sortingMode.toString());
+		switch (sortingMode)
+		{
+			case ALPHABETICAL:
+				setSortingModeDropdownMenuText(PluginSortingMode.ALPHABETICAL);
+
+				pluginList = getPluginList();
+				pluginList.sort(Comparator.comparing(p -> p.getPluginConfig().getName()));
+				mainPanel.removeAll();
+				refresh();
+				break;
+			case CATEGORY:
+				setSortingModeDropdownMenuText(PluginSortingMode.CATEGORY);
+
+				pluginList = getPluginList();
+				pluginList.sort(Comparator.comparing(p -> p.getPluginConfig().getCategory()));
+				mainPanel.removeAll();
+				refresh();
+				break;
+			case STATUS:
+				setSortingModeDropdownMenuText(PluginSortingMode.STATUS);
+
+				pluginList = getPluginList();
+				refresh();
+				pluginList.sort(Comparator.comparing(PluginListItem::getPluginEnabled).reversed());
+				mainPanel.removeAll();
+				refresh();
+				break;
+		}
+	}
+
+	private List<PluginListItem> getPluginList()
+	{
 		final List<String> pinnedPlugins = getPinnedPluginNames();
 
 		// populate pluginList with all non-hidden plugins
-		pluginList = Stream.concat(
-			fakePlugins.stream(),
-			pluginManager.getPlugins().stream()
-				.filter(plugin -> !plugin.getClass().getAnnotation(PluginDescriptor.class).hidden())
-				.map(plugin ->
-				{
-					PluginDescriptor descriptor = plugin.getClass().getAnnotation(PluginDescriptor.class);
-					Config config = pluginManager.getPluginConfigProxy(plugin);
-					ConfigDescriptor configDescriptor = config == null ? null : configManager.getConfigDescriptor(config);
+		return Stream.concat(
+				fakePlugins.stream(),
+				pluginManager.getPlugins().stream()
+						.filter(plugin -> !plugin.getClass().getAnnotation(PluginDescriptor.class).hidden())
+						.map(plugin ->
+						{
+							PluginDescriptor descriptor = plugin.getClass().getAnnotation(PluginDescriptor.class);
+							Config config = pluginManager.getPluginConfigProxy(plugin);
+							ConfigDescriptor configDescriptor = config == null ? null : configManager.getConfigDescriptor(config);
 
-					return new PluginConfigurationDescriptor(
-						descriptor.name(),
-						descriptor.description(),
-						descriptor.tags(),
-						plugin,
-						config,
-						configDescriptor);
-				})
+							return new PluginConfigurationDescriptor(
+									descriptor.name(),
+									descriptor.description(),
+									descriptor.tags(),
+									descriptor.category(),
+									plugin,
+									config,
+									configDescriptor);
+						})
 		).map(desc ->
 		{
 			PluginListItem listItem = new PluginListItem(this, desc);
 			listItem.setPinned(pinnedPlugins.contains(desc.getName()));
 			return listItem;
 		}).collect(Collectors.toList());
+	}
 
-		pluginList.sort(Comparator.comparing(p -> p.getPluginConfig().getName()));
-		mainPanel.removeAll();
-		refresh();
+	private void setSortingModeDropdownMenuText(PluginSortingMode pluginSortingMode)
+	{
+		alphabeticalMenuItem.setText(pluginSortingMode == PluginSortingMode.ALPHABETICAL ?
+				PluginSortingMode.ALPHABETICAL.toString().concat(" (selected)") : PluginSortingMode.ALPHABETICAL.toString());
+		categoryMenuItem.setText(pluginSortingMode == PluginSortingMode.CATEGORY ?
+				PluginSortingMode.CATEGORY.toString().concat(" (selected)") : PluginSortingMode.CATEGORY.toString());
+		statusMenuItem.setText(pluginSortingMode == PluginSortingMode.STATUS ?
+				PluginSortingMode.STATUS.toString().concat(" (selected)") : PluginSortingMode.STATUS.toString());
 	}
 
 	void addFakePlugin(PluginConfigurationDescriptor... descriptor)

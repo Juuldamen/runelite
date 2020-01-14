@@ -36,6 +36,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.OverlayMenuClicked;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginCategory;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.Overlay;
@@ -73,11 +74,11 @@ public class ConfigPlugin extends Plugin
 	{
 		pluginListPanel = pluginListPanelProvider.get();
 		pluginListPanel.addFakePlugin(new PluginConfigurationDescriptor(
-				"RuneLite", "RuneLite client settings", new String[]{"client"},
+				"RuneLite", "RuneLite client settings", new String[]{"client"}, PluginCategory.GENERAL,
 				null, runeLiteConfig, configManager.getConfigDescriptor(runeLiteConfig)
 			),
 			new PluginConfigurationDescriptor(
-				"Chat Color", "Recolor chat text", new String[]{"colour", "messages"},
+				"Chat Color", "Recolor chat text", new String[]{"colour", "messages"}, PluginCategory.GENERAL,
 				null, chatColorConfig, configManager.getConfigDescriptor(chatColorConfig)
 			));
 		pluginListPanel.rebuildPluginList();

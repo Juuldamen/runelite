@@ -48,6 +48,8 @@ public @interface PluginDescriptor
 	 */
 	String[] tags() default {};
 
+	PluginCategory category() default PluginCategory.GENERAL;
+
 	boolean enabledByDefault() default true;
 
 	/**

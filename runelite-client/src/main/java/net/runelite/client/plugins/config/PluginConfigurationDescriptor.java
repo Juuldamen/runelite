@@ -32,6 +32,7 @@ import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 import net.runelite.client.externalplugins.ExternalPluginManifest;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginCategory;
 import net.runelite.client.util.LinkBrowser;
 
 @Value
@@ -40,6 +41,7 @@ class PluginConfigurationDescriptor
 	private final String name;
 	private final String description;
 	private final String[] tags;
+	private final PluginCategory category;
 
 	// Can be null if its not an actual plugin (RuneLite / ChatColors)
 	@Nullable
