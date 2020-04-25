@@ -28,6 +28,7 @@ import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Units;
 
 @ConfigGroup("agility")
 public interface AgilityConfig extends Config
@@ -56,10 +57,11 @@ public interface AgilityConfig extends Config
 
 	@ConfigItem(
 		keyName = "lapTimeout",
-		name = "Hide Lap Count (minutes)",
+		name = "Hide Lap Count",
 		description = "Time until the lap counter hides/resets",
 		position = 2
 	)
+	@Units(Units.MINUTES)
 	default int lapTimeout()
 	{
 		return 5;
@@ -67,8 +69,8 @@ public interface AgilityConfig extends Config
 
 	@ConfigItem(
 		keyName = "lapsToLevel",
-		name = "Show Laps Until Level",
-		description = "Show number of laps remaining until next level is reached.",
+		name = "Show Laps Until Goal",
+		description = "Show number of laps remaining until next goal is reached.",
 		position = 3
 	)
 	default boolean lapsToLevel()
@@ -77,14 +79,14 @@ public interface AgilityConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "lapsToGoal",
-		name = "Show Laps Until Goal",
-		description = "Show number of laps remaining until experience tracker goal is reached",
+		keyName = "lapsPerHour",
+		name = "Show Laps Per Hour",
+		description = "Shows how many laps you can expect to complete per hour.",
 		position = 4
 	)
-	default boolean lapsToGoal()
+	default boolean lapsPerHour()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
@@ -173,5 +175,27 @@ public interface AgilityConfig extends Config
 	default boolean showAgilityArenaTimer()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "highlightStick",
+		name = "Highlight Stick",
+		description = "Highlight the retrievable stick in the Werewolf Agility Course",
+		position = 13
+	)
+	default boolean highlightStick()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "stickHighlightColor",
+		name = "Stick Highlight Color",
+		description = "Color of highlighted stick",
+		position = 14
+	)
+	default Color stickHighlightColor()
+	{
+		return Color.RED;
 	}
 }
