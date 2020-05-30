@@ -272,6 +272,24 @@ public final class ScriptID
 	 * <li> int (WidgetID) * 16, various widgets making up the bank interface </li>
 	 * </ul>
 	 */
-	@ScriptArguments(integer = 16)
+	@ScriptArguments(integer = 17)
 	public static final int BANKMAIN_SEARCH_REFRESH = 283;
+
+	/**
+	 * Called to update the PVP widget (wilderness level/protection)
+	 */
+	@ScriptArguments(integer = 1)
+	public static final int PVP_WIDGET_BUILDER = 388;
+
+	/**
+	 * Called to build the combat interface
+	 */
+	@ScriptArguments
+	public static final int COMBAT_INTERFACE_SETUP = 420;
+
+	/**
+	 * Called to build the toplevel interface
+	 */
+	@ScriptArguments(integer = 2)
+	public static final int TOPLEVEL_REDRAW = 907;
 }

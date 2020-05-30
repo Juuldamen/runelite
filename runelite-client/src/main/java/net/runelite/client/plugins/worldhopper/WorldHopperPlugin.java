@@ -94,7 +94,7 @@ import org.apache.commons.lang3.ArrayUtils;
 @PluginDescriptor(
 	name = "World Hopper",
 	description = "Allows you to quickly hop worlds",
-	tags = {"ping"}
+	tags = {"ping", "switcher"}
 )
 @Slf4j
 public class WorldHopperPlugin extends Plugin
@@ -559,6 +559,12 @@ public class WorldHopperPlugin extends Plugin
 			}
 
 			world = worlds.get(worldIdx);
+
+			// Check world region if filter is enabled
+			if (config.quickHopRegionFilter() != RegionFilterMode.NONE && world.getRegion() != config.quickHopRegionFilter().getRegion())
+			{
+				continue;
+			}
 
 			EnumSet<WorldType> types = world.getTypes().clone();
 
